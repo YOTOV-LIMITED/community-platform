@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="UTF-8">
+    <title>Community-platform by YOTOV-LIMITED</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" type="text/css" href="stylesheets/normalize.css" media="screen">
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="stylesheets/stylesheet.css" media="screen">
+    <link rel="stylesheet" type="text/css" href="stylesheets/github-light.css" media="screen">
+  </head>
+  <body>
+    <section class="page-header">
+      <h1 class="project-name">Community-platform</h1>
+      <h2 class="project-tagline">DuckDuckGo Community Platform</h2>
+      <a href="https://github.com/YOTOV-LIMITED/community-platform" class="btn">View on GitHub</a>
+      <a href="https://github.com/YOTOV-LIMITED/community-platform/zipball/master" class="btn">Download .zip</a>
+      <a href="https://github.com/YOTOV-LIMITED/community-platform/tarball/master" class="btn">Download .tar.gz</a>
+    </section>
+
+    <section class="main-content">
+      <h1>
+<a id="duckduckgo---community-platform" class="anchor" href="#duckduckgo---community-platform" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>DuckDuckGo - Community Platform</h1>
+
+<p>This is the source code for the DuckDuckGo Community Platform at <a href="https://duck.co/">duck.co</a></p>
+
+<h2>
+<a id="requirements--installation" class="anchor" href="#requirements--installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Requirements / Installation</h2>
+
+<p>The DuckDuckGo Community Platform is built on <a href="http://www.perl.org/">Perl</a>,
+<a href="https://metacpan.org/pod/Catalyst">Catalyst</a>,
+<a href="https://metacpan.org/pod/DBIx::Class">DBIx::Class</a>,
+<a href="https://metacpan.org/pod/Text::Xslate">Text::Xslate</a> and
+<a href="https://metacpan.org/pod/Dancer2">Dancer2</a>.</p>
+
+<p>Requires perl 5.16.3 (or higher) and:</p>
+
+<ul>
+<li>cpanm (<a href="https://metacpan.org/pod/local::lib">local::lib</a> and/or <a href="http://perlbrew.pl/">perlbrew</a> recommended)</li>
+<li>gcc toolchain (gcc, make, lib headers)</li>
+<li>git</li>
+<li>libcurl</li>
+<li>imagemagick</li>
+<li>postgresql (recommended, though you may get away with mysql or sqlite for now)</li>
+</ul>
+
+<p>To install these on Debian / Ubuntu:</p>
+
+<pre><code>  apt-get install cpanm build-essential libgd2-xpm-dev libssl-dev git libcurl4-gnutls-dev libxml2-dev imagemagick perl-doc postgresql libpq-dev
+</code></pre>
+
+<p>To proceed with installation, you will also need <a href="https://metacpan.org/pod/Dist::Zilla">Dist::Zilla</a></p>
+
+<pre><code>  cpanm -i Dist::Zilla
+</code></pre>
+
+<p>To install community-platform's Perl dependencies, go to its directory and
+run:</p>
+
+<pre><code>  dzil authordeps --missing | cpanm
+  dzil listdeps --missing | grep -v abstract | cpanm
+</code></pre>
+
+<p>This will take some time. You can add <code>--notest</code> to the cpanm command to speed
+things up, but this may result in fires later.</p>
+
+<h2>
+<a id="test-data" class="anchor" href="#test-data" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Test Data</h2>
+
+<p>Before running the dev server, we need a database schema.</p>
+
+<p>The default is to use SQLite if no DSN configuration environment
+variables are found, e.g.</p>
+
+<pre><code>  export DDGC_DB_DSN='dbi:Pg:database=ddgc';
+  export DDGC_DB_USER='ddgc';
+  export DDGC_DB_PASSWORD='yourdbpass';
+</code></pre>
+
+<p>To run the dev environment deployment script, your postgres user requires
+the following permissions:</p>
+
+<pre><code>  ALTER USER ddgc CREATEDB;
+  ALTER USER ddgc LOGIN;
+</code></pre>
+
+<p>This script deploys the schema and populates it with a test / dev data set:</p>
+
+<pre><code>  script/ddgc_deploy_dev.pl
+</code></pre>
+
+<p>You can also roll over any existing schema with the <code>--kill</code> switch:</p>
+
+<pre><code>  script/ddgc_deploy_dev.pl --kill
+</code></pre>
+
+<p>For the flags to work, you need to generate their sprites. This
+process has to be repeated everytime the country flags are changed.</p>
+
+<pre><code>  script/ddgc_generate_flag_sprites.pl
+</code></pre>
+
+<p>Community platform's generated static files, media uploads, caches, duckpan
+packages etc. live in <code>$HOME/ddgc/</code></p>
+
+<h2>
+<a id="development" class="anchor" href="#development" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Development</h2>
+
+<p>To launch the development web server:</p>
+
+<pre><code>script/ddgc_dev_server.sh
+</code></pre>
+
+<p>This, by default, launches a plack server bound to port 5001 with DBIC and
+Catalyst console debugging enabled with Plack debug panels in rendered output.</p>
+
+<p>It watches the <code>lib/</code> directory and restarts if there are any changes written.
+It supports the following options:</p>
+
+<ul>
+<li>-p  - Set port to bind to</li>
+<li>-m - Use a debug mailer on localhost:1025 (python -m smtpd -n -c DebuggingServer localhost:1025)</li>
+<li>-n - Don't render Plack debug panels (useful for frontend work)</li>
+</ul>
+
+<p>Front end elements (js, css...) in <code>src/</code> are managed by node.js / grunt.</p>
+
+<p>To launch a task to rebuild static files when they change, use</p>
+
+<p><code>grunt watch</code></p>
+
+<h3>
+<a id="user-accounts" class="anchor" href="#user-accounts" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>User Accounts</h3>
+
+<p>The following accounts are created by <code>ddgc_deploy_dev.pl</code>:</p>
+
+<ul>
+<li><p><strong>testone</strong> An admin, who is native German but also speaks English.</p></li>
+<li><p><strong>testtwo</strong> A normal user who speaks Spanish with public profile.</p></li>
+<li><p><strong>testthree</strong> A translation manager who speaks English, Arabic, and German.</p></li>
+<li><p><strong>testfour</strong> An admin, who speaks German, Spanish, and English.</p></li>
+<li><p><strong>testfive</strong> A normal user without public profile, who speaks Russian and
+English.</p></li>
+<li><p>Additionally there are also <strong>test1</strong> to <strong>test40</strong> all without any setup.</p></li>
+</ul>
+
+<p>Any random password will suffice, as a separate service is used to provide
+authentication in production.</p>
+
+<h2>
+<a id="license" class="anchor" href="#license" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>License</h2>
+
+<p>This software is licensed under Perl 5 dual license: either GPLv1 or later, or, at users' choice, Artistic 1.0.
+We welcome contributions to this software under the same licensing terms.</p>
+
+<h2>
+<a id="third-party-credits" class="anchor" href="#third-party-credits" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Third party credits</h2>
+
+<p>The project is built using other software packages and creative content:</p>
+
+<ul>
+<li>SCEditor, <a href="http://www.opensource.org/licenses/MIT">MIT license</a>
+</li>
+<li>jQuery JavaScript Library v1.9.1, <a href="http://www.opensource.org/licenses/MIT">MIT license</a>
+</li>
+<li>aToolTip jQuery plugin, <a href="http://creativecommons.org/licenses/by/3.0">CC-BY 3.0 Unported license</a><br>
+</li>
+<li>Select2, <a href="http://www.apache.org/licenses/LICENSE-2.0">Apache License 2.0</a> or <a href="http://www.gnu.org/licenses/gpl-2.0.html">GPL v2</a>
+</li>
+<li>handlebars v1.3.0, <a href="http://www.opensource.org/licenses/MIT">MIT license</a>
+</li>
+<li>HTML5shiv, dual license, <a href="http://www.opensource.org/licenses/MIT">MIT</a> or <a href="http://www.gnu.org/licenses/gpl-2.0.html">GPL v2</a>
+</li>
+<li>jQuery Iframe Transport, part of jQuery-File-Upload jQuery plugin, <a href="http://www.opensource.org/licenses/MIT">MIT license</a>
+</li>
+<li>Dropzone, <a href="http://www.opensource.org/licenses/MIT">MIT license</a>
+</li>
+<li>ContentLoaded, <a href="http://www.opensource.org/licenses/MIT">MIT license</a>
+</li>
+<li>addPlaceholder jQuery plugin, code made available on <a href="http://iliadraznin.com/2011/02/jquery-placeholder-plugin/">author's blog</a>
+</li>
+</ul>
+
+      <footer class="site-footer">
+        <span class="site-footer-owner"><a href="https://github.com/YOTOV-LIMITED/community-platform">Community-platform</a> is maintained by <a href="https://github.com/YOTOV-LIMITED">YOTOV-LIMITED</a>.</span>
+
+        <span class="site-footer-credits">This page was generated by <a href="https://pages.github.com">GitHub Pages</a> using the <a href="https://github.com/jasonlong/cayman-theme">Cayman theme</a> by <a href="https://twitter.com/jasonlong">Jason Long</a>.</span>
+      </footer>
+
+    </section>
+
+  
+  </body>
+</html>
